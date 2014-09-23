@@ -20,7 +20,7 @@
       return typeof object === 'function';
     };
     escapeRegExp = function(string) {
-      return string.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, "\\$&");
+      return string.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
     };
     RegExp_test = RegExp.prototype.test;
     testRegExp = function(re, string) {
@@ -31,12 +31,12 @@
       return !testRegExp(nonSpaceRe, string);
     };
     entityMap = {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': '&quot;',
-      "'": '&#39;',
-      "/": '&#x2F;'
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '\"': '&quot;',
+      '\'': '&#39;',
+      '/': '&#x2F;'
     };
     escapeHtml = function(string) {
       return String(string).replace(/[&<>"'\/]/g, function(s) {
@@ -93,15 +93,15 @@
             chr = value.charAt(i)
         
             if (isWhitespace(chr))
-              spaces.push(tokens.length);
+              spaces.push(tokens.length)
             else
-              nonSpace = true;
+              nonSpace = true
         
         
             tokens.push([ 'text', chr, start, start + 1 ])
             start += 1
         
-            stripSpace() if (chr == '\n')
+            stripSpace() if (chr is '\n')
          */
         if (!scanner.scan(openingTagRe)) {
           break;
@@ -153,11 +153,11 @@
       squashedTokens = [];
 
       /*
-      for (var i = 0, numTokens = tokens.length; i < numTokens; ++i) {
+      for (var i = 0, numTokens = tokens.length; i < numTokens ++i) {
         token = tokens[i]
       
         token?
-          if (token[0] == 'text' and lastToken and lastToken[0] == 'text')
+          if (token[0] is 'text' and lastToken and lastToken[0] is 'text')
             lastToken[1] += token[1]
             lastToken[3] = token[3]
           else
@@ -168,31 +168,31 @@
       return squashedTokens;
     };
     nestTokens = function(tokens) {
-      var nestedTokens, sections;
+      var collector, nestedTokens, sections, token, tokenParse, _i, _len;
       nestedTokens = [];
+      collector = nestedTokens;
       sections = [];
-
-      /*
-      for (i = 0, numTokens = tokens.length; i < numTokens; ++i) {
-        token = tokens[i];
-      
-        switch token[0]
-          when '#' then
-          when '^' then
+      tokenParse = function(token) {
+        var section;
+        switch (token[0]) {
+          case '#':
+          case '^':
             collector.push(token);
             sections.push(token);
-            collector = token[4] = [];
-            break;
-          when '/' then
+            return collector = token[4] = [];
+          case '/':
             section = sections.pop();
             section[5] = token[2];
-            collector = sections.length > 0 ? sections[sections.length - 1][4] : nestedTokens;
-            break;
-          else:
-            collector.push(token);
+            return collector = sections.length > 0 ? sections[sections.length - 1][4] : nestedTokens;
+          default:
+            return collector.push(token);
+        }
+      };
+      for (_i = 0, _len = tokens.length; _i < _len; _i++) {
+        token = tokens[_i];
+        tokenParse(token);
       }
-       */
-      return nestedTokens;
+      return collector;
     };
     Scanner = function(string) {
       this.string = string;
@@ -200,7 +200,7 @@
       return this.pos = 0;
     };
     Scanner.prototype.eos = function() {
-      return this.tail === "";
+      return this.tail === '';
     };
     Scanner.prototype.scan = function(re) {
       var match, string;
@@ -209,29 +209,30 @@
         return '';
       }
       string = match[0];
-      this.tail = this.tail.substring(string.length);
+      this.tail = this.tail.slice(string.length);
       this.pos += string.length;
       return string;
     };
     Scanner.prototype.scanUntil = function(re) {
-      var index;
+      var index, match;
       index = this.tail.search(re);
-
-      /*
-      switch index
-        when -1 then
-          match = this.tail
-          this.tail = ""
-        when 0 then match = ""
-        else
-          match = this.tail.substring(0, index)
-          this.tail = this.tail.substring(index)
-       */
+      switch (index) {
+        case -1:
+          match = this.tail;
+          this.tail = '';
+          break;
+        case 0:
+          match = '';
+          break;
+        default:
+          match = this.tail.slice(0, index);
+          this.tail = this.tail.slice(index);
+      }
       this.pos += match.length;
       return match;
     };
     Context = function(view, parentContext) {
-      this.view = view === null ? {} : view;
+      this.view = view != null ? view : {};
       this.cache = {
         '.': this.view
       };
@@ -256,11 +257,11 @@
             value = context.view
             names = name.split('.')
             index = 0
-            value = value[names[index++]] while (value != null and index < names.length)
+            value = value[names[index++]] while (value isnt null and index < names.length)
           else
             value = context.view[name]
         
-          break if (value != null)
+          break if (value isnt null)
         
           context = context.parent
         }
@@ -291,7 +292,7 @@
       var context, tokens;
       tokens = this.parse(template);
       context = view instanceof Context ? view : new Context(view);
-      return render(this.renderTokens(tokens, context, partials, template));
+      return this.renderTokens(tokens, context, partials, template);
     };
     Writer.prototype.renderTokens = function(tokens, context, partials, originalTemplate) {
       var buffer, self, subRender;
@@ -305,59 +306,59 @@
           token = tokens[i]
         
           switch token[0]
-            when '#' then
+            when '#'
               value = context.lookup(token[1])
         
               continue if !value
         
               if (isArray(value))
                 for (var j = 0, valueLength = value.length; j < valueLength; ++j) {
-                    buffer += this.renderTokens(token[4], context.push(value[j]), partials, originalTemplate);
+                    buffer += @renderTokens(token[4], context.push(value[j]), partials, originalTemplate)
                 }
-              else if (typeof value == 'object' or typeof value == 'string')
-                  buffer += this.renderTokens(token[4], context.push(value), partials, originalTemplate)
+              else if (typeof value is 'object' or typeof value is 'string')
+                  buffer += @renderTokens(token[4], context.push(value), partials, originalTemplate)
               else if (isFunction(value))
         
-                throw new Error('Cannot use higher-order sections without the original template') if (typeof originalTemplate != 'string')
+                throw new Error('Cannot use higher-order sections without the original template') if (typeof originalTemplate isnt 'string')
         
                 value = value.call(context.view, originalTemplate.slice(token[3], token[5]), subRender)
         
         
-                buffer += valueaw if (value != null)
+                buffer += valueaw if (value isnt null)
         
               else
-                buffer += this.renderTokens(token[4], context, partials, originalTemplate)
+                buffer += @renderTokens(token[4], context, partials, originalTemplate)
         
-            when '^' then
+            when '^'
               value = context.lookup(token[1])
         
-              buffer += this.renderTokens(token[4], context, partials, originalTemplate) if (!value or (isArray(value) and value.length == 0))
+              buffer += @renderTokens(token[4], context, partials, originalTemplate) if (!value or (isArray(value) and value.length is 0))
         
-            when '>' then
+            when '>'
               continue if (!partials)
         
-              value = isFunction(partials) ? partials(token[1]) : partials[token[1]];
+              value = isFunction(partials) ? partials(token[1]) : partials[token[1]]
         
-              buffer += this.renderTokens(this.parse(value), context, partials, value) if (value != null)
+              buffer += @renderTokens(@parse(value), context, partials, value) if (value isnt null)
         
-            when '&' then
-        
+            when '&'
               value = context.lookup(token[1])
-              buffer += value if (value != null)
+              buffer += value if (value isnt null)
         
-            when 'name' then
-              value = context.lookup(token[1]);
-              buffer += mustache.escape(value) if (value != null)
+            when 'name'
+              value = context.lookup(token[1])
+              buffer += mustache.escape(value) if (value isnt null)
         
-            when 'text' then buffer += token[1]
+            when 'text'
+               buffer += token[1]
         }
          */
       };
       return buffer;
     };
-    mustache.name = "mustache.js";
-    mustache.version = "0.8.1";
-    mustache.tags = ["{{", "}}"];
+    mustache.name = 'mustache.js';
+    mustache.version = '0.8.1';
+    mustache.tags = ['{{', '}}'];
     defaultWriter = new Writer();
     mustache.clearCache = function() {
       return defaultWriter.clearCache();
@@ -384,9 +385,9 @@
   };
 
   (function(global, factory) {
-    if (typeof exports === "object" && exports) {
+    if (typeof exports === 'object' && exports) {
       return factory(exports);
-    } else if (typeof define === "function" && define.amd) {
+    } else if (typeof define === 'function' && define.amd) {
       return define(['exports'], factory);
     } else {
       return factory(global.Mustache = {});

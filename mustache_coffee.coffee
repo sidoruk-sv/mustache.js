@@ -5,20 +5,20 @@
 
 #global define: false
 factory = (mustache) ->
-  Object_toString = Object.prototype.toString
+  Object_toString = Object::toString
 
   isArrayOld = (object) ->
-    Object_toString.call(object) == '[object Array]'
+    Object_toString.call(object) is '[object Array]'
 
   isArray = Array.isArray or isArrayOld
 
   isFunction = (object) ->
-    typeof object == 'function'
+    typeof object is 'function'
 
   escapeRegExp = (string) ->
-    string.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, "\\$&")
+    string.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&')
 
-  RegExp_test = RegExp.prototype.test
+  RegExp_test = RegExp::test
 
   testRegExp = (re, string) ->
     RegExp_test.call(re, string)
@@ -29,49 +29,49 @@ factory = (mustache) ->
     !testRegExp(nonSpaceRe, string)
 
   entityMap =
-    "&": "&amp;"
-    "<": "&lt;"
-    ">": "&gt;"
-    '"': '&quot;'
-    "'": '&#39;'
-    "/": '&#x2F;'
+    '&': '&amp;'
+    '<': '&lt;'
+    '>': '&gt;'
+    '\"': '&quot;'
+    '\'': '&#39;'
+    '/': '&#x2F;'
 
 
   escapeHtml = (string) ->
     String(string).replace  /[&<>"'\/]/g, (s) ->
       entityMap[s]
 
-  whiteRe = /\s*/;
-  spaceRe = /\s+/;
-  equalsRe = /\s*=/;
-  curlyRe = /\s*\}/;
-  tagRe = /#|\^|\/|>|\{|&|=|!/;
+  whiteRe = /\s*/
+  spaceRe = /\s+/
+  equalsRe = /\s*=/
+  curlyRe = /\s*\}/
+  tagRe = /#|\^|\/|>|\{|&|=|!/
 
 
   parseTemplate = (template, tags) ->
     return [] if !template
 
-    sections = [];
-    tokens = [];
-    spaces = [];
-    hasTag = false;
-    nonSpace = false;
+    sections = []
+    tokens = []
+    spaces = []
+    hasTag = false
+    nonSpace = false
 
     stripSpace = ->
       if (hasTag and !nonSpace)
         while (spaces.length)
           delete tokens[spaces.pop()]
       else
-        spaces = [];
+        spaces = []
 
-      hasTag = false;
-      nonSpace = false;
+      hasTag = false
+      nonSpace = false
 
 
 
     compileTags = (tags) ->
-      tags = tags.split(spaceRe, 2) if (typeof tags == 'string')
-      throw new Error('Invalid tags: ' + tags) if (!isArray(tags) or tags.length != 2)
+      tags = tags.split(spaceRe, 2) if (typeof tags is 'string')
+      throw new Error('Invalid tags: ' + tags) if (!isArray(tags) or tags.length isnt 2)
       openingTagRe = new RegExp(escapeRegExp(tags[0]) + '\\s*')
       closingTagRe = new RegExp('\\s*' + escapeRegExp(tags[1]))
       closingCurlyRe = new RegExp('\\s*' + escapeRegExp('}' + tags[1]))
@@ -91,31 +91,31 @@ factory = (mustache) ->
           chr = value.charAt(i)
 
           if (isWhitespace(chr))
-            spaces.push(tokens.length);
+            spaces.push(tokens.length)
           else
-            nonSpace = true;
+            nonSpace = true
 
 
           tokens.push([ 'text', chr, start, start + 1 ])
           start += 1
 
-          stripSpace() if (chr == '\n')
+          stripSpace() if (chr is '\n')
       ###
 
 
-      break if (!scanner.scan(openingTagRe))
+      break if !scanner.scan(openingTagRe)
 
       hasTag = true
 
       type = scanner.scan(tagRe) or 'name'
-      scanner.scan(whiteRe);
+      scanner.scan(whiteRe)
 
 
-      if (type == '=')
+      if (type is '=')
         value = scanner.scanUntil(equalsRe)
         scanner.scan(equalsRe)
         scanner.scanUntil(closingTagRe)
-      else if (type == '{')
+      else if (type is '{')
         value = scanner.scanUntil(closingCurlyRe)
         scanner.scan(curlyRe)
         scanner.scanUntil(closingTagRe)
@@ -128,18 +128,18 @@ factory = (mustache) ->
       token = [ type, value, start, scanner.pos ]
       tokens.push(token)
 
-      if (type == '#' or type == '^')
+      if (type is '#' or type is '^')
         sections.push(token)
-      else if (type == '/')
+      else if (type is '/')
         openSection = sections.pop()
         throw new Error('Unopened section "' + value + '" at ' + start) if !openSection
-        throw new Error('Unclosed section "' + openSection[1] + '" at ' + start) if (openSection[1] != value)
-      else if (type == 'name' or type == '{' or type == '&')
+        throw new Error('Unclosed section "' + openSection[1] + '" at ' + start) if (openSection[1] isnt value)
+      else if (type is 'name' or type is '{' or type is '&')
         nonSpace = true
-      else if (type == '=')
+      else if (type is '=')
         compileTags(value)
 
-    openSection = sections.pop();
+    openSection = sections.pop()
 
     throw new Error('Unclosed section "' + openSection[1] + '" at ' + scanner.pos) if openSection
 
@@ -149,11 +149,11 @@ factory = (mustache) ->
     squashedTokens = []
 
     ###
-    for (var i = 0, numTokens = tokens.length; i < numTokens; ++i) {
+    for (var i = 0, numTokens = tokens.length; i < numTokens ++i) {
       token = tokens[i]
 
       token?
-        if (token[0] == 'text' and lastToken and lastToken[0] == 'text')
+        if (token[0] is 'text' and lastToken and lastToken[0] is 'text')
           lastToken[1] += token[1]
           lastToken[3] = token[3]
         else
@@ -168,86 +168,80 @@ factory = (mustache) ->
   nestTokens = (tokens) ->
 
     nestedTokens = []
+    collector = nestedTokens
     sections = []
 
-    ###
-    for (i = 0, numTokens = tokens.length; i < numTokens; ++i) {
-      token = tokens[i];
-
+    tokenParse = (token) ->
       switch token[0]
-        when '#' then
-        when '^' then
-          collector.push(token);
-          sections.push(token);
-          collector = token[4] = [];
-          break;
-        when '/' then
-          section = sections.pop();
-          section[5] = token[2];
-          collector = sections.length > 0 ? sections[sections.length - 1][4] : nestedTokens;
-          break;
-        else:
-          collector.push(token);
-    }
-    ###
-    return nestedTokens
+        when '#', '^'
+          collector.push(token)
+          sections.push(token)
+          collector = token[4] = []
+        when '/'
+          section = sections.pop()
+          section[5] = token[2]
+          collector = if sections.length > 0 then sections[sections.length - 1][4] else nestedTokens
+        else
+          collector.push(token)
+
+    tokenParse token for token in tokens
+
+    return collector
 
 
-  Scanner = (string) ->
-    this.string = string
-    this.tail = string
-    this.pos = 0
+  Scanner = (@string) ->
+    @tail = string
+    @pos = 0
 
 
-  Scanner.prototype.eos = ->
-    this.tail == ""
+  Scanner::eos = ->
+    @tail is ''
 
 
-  Scanner.prototype.scan = (re) ->
-    match = this.tail.match(re)
+  Scanner::scan = (re) ->
+    match = @tail.match(re)
 
-    return '' if (!match or match.index != 0)
+    return '' if (!match or match.index isnt 0)
 
     string = match[0]
 
-    this.tail = this.tail.substring(string.length)
-    this.pos += string.length
+    @tail = @tail.slice(string.length)
+    @pos += string.length
 
     return string
 
 
-  Scanner.prototype.scanUntil = (re) ->
-    index = this.tail.search(re)
+  Scanner::scanUntil = (re) ->
+    index = @tail.search(re)
 
-    ###
     switch index
-      when -1 then
-        match = this.tail
-        this.tail = ""
-      when 0 then match = ""
+      when -1
+        match = @tail
+        @tail = ''
+      when 0
+        match = ''
       else
-        match = this.tail.substring(0, index)
-        this.tail = this.tail.substring(index)
-    ###
+        match = @tail.slice(0, index)
+        @tail = @tail.slice(index)
 
-    this.pos += match.length
+    @pos += match.length
     return match
 
 
   Context = (view, parentContext) ->
-    this.view = if view == null then {} else view
-    this.cache = {'.': this.view}
-    this.parent = parentContext
+    @view = view ? {}
+    @cache = {'.': @view}
+    @parent = parentContext
 
 
-  Context.prototype.push = (view) ->
+  Context::push = (view) ->
     new Context(view, this)
 
-  Context.prototype.lookup = (name) ->
-    cache = this.cache
+  Context::lookup = (name) ->
+    cache = @cache
 
     if (name in cache)
-      value = cache[name];
+      value = cache[name]
     else
       ###
       context = this, names, index
@@ -258,11 +252,11 @@ factory = (mustache) ->
           value = context.view
           names = name.split('.')
           index = 0
-          value = value[names[index++]] while (value != null and index < names.length)
+          value = value[names[index++]] while (value isnt null and index < names.length)
         else
           value = context.view[name]
 
-        break if (value != null)
+        break if (value isnt null)
 
         context = context.parent
       }
@@ -270,34 +264,34 @@ factory = (mustache) ->
 
       cache[name] = value
 
-    value = value.call(this.view) if isFunction(value)
+    value = value.call(@view) if isFunction(value)
 
     return value
 
 
   Writer = ->
-    this.cache = {}
+    @cache = {}
 
 
-  Writer.prototype.clearCache = ->
-    this.cache = {}
+  Writer::clearCache = ->
+    @cache = {}
 
 
-  Writer.prototype.parse = (template, tags) ->
-    cache = this.cache;
-    tokens = cache[template];
+  Writer::parse = (template, tags) ->
+    cache = @cache
+    tokens = cache[template]
 
-    tokens = cache[template] = parseTemplate(template, tags) if (tokens == null)
+    tokens = cache[template] = parseTemplate(template, tags) if (tokens is null)
 
-    return tokens;
+    return tokens
 
 
-  Writer.prototype.render = (template, view, partials) ->
-    tokens = this.parse(template)
+  Writer::render = (template, view, partials) ->
+    tokens = @parse(template)
     context = if (view instanceof Context) then view else new Context(view)
-    render this.renderTokens(tokens, context, partials, template)
+    return @renderTokens(tokens, context, partials, template)
 
-  Writer.prototype.renderTokens = (tokens, context, partials, originalTemplate) ->
+  Writer::renderTokens = (tokens, context, partials, originalTemplate) ->
     buffer = ''
     self = this
 
@@ -309,58 +303,58 @@ factory = (mustache) ->
         token = tokens[i]
 
         switch token[0]
-          when '#' then
+          when '#'
             value = context.lookup(token[1])
 
             continue if !value
 
             if (isArray(value))
               for (var j = 0, valueLength = value.length; j < valueLength; ++j) {
-                  buffer += this.renderTokens(token[4], context.push(value[j]), partials, originalTemplate);
+                  buffer += @renderTokens(token[4], context.push(value[j]), partials, originalTemplate)
               }
-            else if (typeof value == 'object' or typeof value == 'string')
-                buffer += this.renderTokens(token[4], context.push(value), partials, originalTemplate)
+            else if (typeof value is 'object' or typeof value is 'string')
+                buffer += @renderTokens(token[4], context.push(value), partials, originalTemplate)
             else if (isFunction(value))
 
-              throw new Error('Cannot use higher-order sections without the original template') if (typeof originalTemplate != 'string')
+              throw new Error('Cannot use higher-order sections without the original template') if (typeof originalTemplate isnt 'string')
 
               value = value.call(context.view, originalTemplate.slice(token[3], token[5]), subRender)
 
 
-              buffer += valueaw if (value != null)
+              buffer += valueaw if (value isnt null)
 
             else
-              buffer += this.renderTokens(token[4], context, partials, originalTemplate)
+              buffer += @renderTokens(token[4], context, partials, originalTemplate)
 
-          when '^' then
+          when '^'
             value = context.lookup(token[1])
 
-            buffer += this.renderTokens(token[4], context, partials, originalTemplate) if (!value or (isArray(value) and value.length == 0))
+            buffer += @renderTokens(token[4], context, partials, originalTemplate) if (!value or (isArray(value) and value.length is 0))
 
-          when '>' then
+          when '>'
             continue if (!partials)
 
-            value = isFunction(partials) ? partials(token[1]) : partials[token[1]];
+            value = isFunction(partials) ? partials(token[1]) : partials[token[1]]
 
-            buffer += this.renderTokens(this.parse(value), context, partials, value) if (value != null)
+            buffer += @renderTokens(@parse(value), context, partials, value) if (value isnt null)
 
-          when '&' then
-
+          when '&'
             value = context.lookup(token[1])
-            buffer += value if (value != null)
+            buffer += value if (value isnt null)
 
-          when 'name' then
-            value = context.lookup(token[1]);
-            buffer += mustache.escape(value) if (value != null)
+          when 'name'
+            value = context.lookup(token[1])
+            buffer += mustache.escape(value) if (value isnt null)
 
-          when 'text' then buffer += token[1]
+          when 'text'
+             buffer += token[1]
       }
       ###
     return buffer
 
-  mustache.name = "mustache.js"
-  mustache.version = "0.8.1"
-  mustache.tags = ["{{", "}}"]
+  mustache.name = 'mustache.js'
+  mustache.version = '0.8.1'
+  mustache.tags = ['{{', '}}']
 
   defaultWriter = new Writer()
 
@@ -375,12 +369,8 @@ factory = (mustache) ->
     defaultWriter.render(template, view, partials)
 
   mustache.to_html = (template, view, partials, send) ->
-    result = mustache.render(template, view, partials);
-
-    if (isFunction(send))
-      send(result)
-    else
-      return result
+    result = mustache.render(template, view, partials)
+    if isFunction(send) then send(result) else result
 
   mustache.escape = escapeHtml
 
@@ -391,9 +381,9 @@ factory = (mustache) ->
 
 
 do (global = this, factory) ->
-  if typeof exports == "object" and exports
+  if typeof exports is 'object' and exports
       factory(exports)
-  else if typeof define == "function" and define.amd
+  else if typeof define is 'function' and define.amd
       define(['exports'], factory)
   else
       factory(global.Mustache = {})
