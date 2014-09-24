@@ -49,7 +49,7 @@
     curlyRe = /\s*\}/;
     tagRe = /#|\^|\/|>|\{|&|=|!/;
     parseTemplate = function(template, tags) {
-      var compileTags, hasTag, nonSpace, openSection, scanner, sections, spaces, start, stripSpace, token, tokens, type, value;
+      var chr, compileTags, hasTag, i, nonSpace, openSection, scanner, sections, spaces, start, stripSpace, token, tokens, type, value, _i, _len;
       if (!template) {
         return [];
       }
@@ -75,34 +75,33 @@
           tags = tags.split(spaceRe, 2);
         }
         if (!isArray(tags) || tags.length !== 2) {
-          throw new Error('Invalid tags: ' + tags);
+          throw new Error("Invalid tags: " + tags);
         }
-        openingTagRe = new RegExp(escapeRegExp(tags[0]) + '\\s*');
-        closingTagRe = new RegExp('\\s*' + escapeRegExp(tags[1]));
-        return closingCurlyRe = new RegExp('\\s*' + escapeRegExp('}' + tags[1]));
+        openingTagRe = new RegExp("" + (escapeRegExp(tags[0])) + "\\s*");
+        closingTagRe = new RegExp("\\s*" + (escapeRegExp(tags[1])));
+        return closingCurlyRe = new RegExp("\\s*" + (escapeRegExp('}' + tags[1])));
       };
       compileTags(tags || mustache.tags);
       scanner = new Scanner(template);
-      while (!!scanner.eos()) {
+      while (!scanner.eos()) {
         start = scanner.pos;
         value = scanner.scanUntil(openingTagRe);
-
-        /*
-        value?
-          for (i = 0, valueLength = value.length; i < valueLength; ++i)
-            chr = value.charAt(i)
-        
-            if (isWhitespace(chr))
-              spaces.push(tokens.length)
-            else
-              nonSpace = true
-        
-        
-            tokens.push([ 'text', chr, start, start + 1 ])
-            start += 1
-        
-            stripSpace() if (chr is '\n')
-         */
+        if (value) {
+          for (_i = 0, _len = value.length; _i < _len; _i++) {
+            i = value[_i];
+            chr = value.charAt(i);
+            if (isWhitespace(chr)) {
+              spaces.push(tokens.length);
+            } else {
+              nonSpace = true;
+            }
+            tokens.push(['text', chr, start, start + 1]);
+            start += 1;
+            if (chr === '\n') {
+              stripSpace();
+            }
+          }
+        }
         if (!scanner.scan(openingTagRe)) {
           break;
         }
@@ -122,7 +121,7 @@
           value = scanner.scanUntil(closingTagRe);
         }
         if (!scanner.scan(closingTagRe)) {
-          throw new Error('Unclosed tag at ' + scanner.pos);
+          throw new Error("Unclosed tag at " + scanner.pos);
         }
         token = [type, value, start, scanner.pos];
         tokens.push(token);
@@ -131,10 +130,10 @@
         } else if (type === '/') {
           openSection = sections.pop();
           if (!openSection) {
-            throw new Error('Unopened section "' + value + '" at ' + start);
+            throw new Error("Unopened section \"" + value + "\" at " + start);
           }
           if (openSection[1] !== value) {
-            throw new Error('Unclosed section "' + openSection[1] + '" at ' + start);
+            throw new Error("Unclosed section \"" + openSection[1] + "\" at " + start);
           }
         } else if (type === 'name' || type === '{' || type === '&') {
           nonSpace = true;
@@ -144,20 +143,22 @@
       }
       openSection = sections.pop();
       if (openSection) {
-        throw new Error('Unclosed section "' + openSection[1] + '" at ' + scanner.pos);
+        throw new Error("Unclosed section \"" + openSection[1] + "\" at " + scanner.pos);
       }
       return nestTokens(squashTokens(tokens));
     };
     squashTokens = function(tokens) {
-      var squashedTokens;
+      var lastToken, squashedTokens, token;
       squashedTokens = [];
+      token = void 0;
+      lastToken = void 0;
 
       /*
       for (var i = 0, numTokens = tokens.length; i < numTokens ++i) {
         token = tokens[i]
       
         token?
-          if (token[0] is 'text' and lastToken and lastToken[0] is 'text')
+          if token[0] is 'text' and lastToken and lastToken[0] is 'text'
             lastToken[1] += token[1]
             lastToken[3] = token[3]
           else
@@ -242,30 +243,30 @@
       return new Context(view, this);
     };
     Context.prototype.lookup = function(name) {
-      var cache, value;
+      var cache, context, index, names, value;
       cache = this.cache;
-      if ((__indexOf.call(cache, name) >= 0)) {
+      if (__indexOf.call(cache, name) >= 0) {
         value = cache[name];
       } else {
-
-        /*
-        context = this, names, index
-        
+        context = this;
+        names = void 0;
+        index = void 0;
         while (context) {
-        
-          if (name.indexOf('.') > 0)
-            value = context.view
-            names = name.split('.')
-            index = 0
-            value = value[names[index++]] while (value isnt null and index < names.length)
-          else
-            value = context.view[name]
-        
-          break if (value isnt null)
-        
-          context = context.parent
+          if (name.indexOf('.') > 0) {
+            value = context.view;
+            names = name.split('.');
+            index = 0;
+            while ((value != null) && index < names.length) {
+              value = value[names[index++]];
+            }
+          } else {
+            value = context.view[name];
+          }
+          if (value !== null) {
+            break;
+          }
+          context = context.parent;
         }
-         */
         cache[name] = value;
       }
       if (isFunction(value)) {
@@ -309,7 +310,7 @@
             when '#'
               value = context.lookup(token[1])
         
-              continue if !value
+              continue if not value
         
               if (isArray(value))
                 for (var j = 0, valueLength = value.length; j < valueLength; ++j) {
@@ -319,12 +320,12 @@
                   buffer += @renderTokens(token[4], context.push(value), partials, originalTemplate)
               else if (isFunction(value))
         
-                throw new Error('Cannot use higher-order sections without the original template') if (typeof originalTemplate isnt 'string')
+                throw new Error('Cannot use higher-order sections without the original template') if typeof originalTemplate isnt 'string'
         
                 value = value.call(context.view, originalTemplate.slice(token[3], token[5]), subRender)
         
         
-                buffer += valueaw if (value isnt null)
+                buffer += value if value isnt null
         
               else
                 buffer += @renderTokens(token[4], context, partials, originalTemplate)
@@ -332,10 +333,10 @@
             when '^'
               value = context.lookup(token[1])
         
-              buffer += @renderTokens(token[4], context, partials, originalTemplate) if (!value or (isArray(value) and value.length is 0))
+              buffer += @renderTokens(token[4], context, partials, originalTemplate) if (not value or (isArray(value) and value.length is 0))
         
             when '>'
-              continue if (!partials)
+              continue if not partials
         
               value = isFunction(partials) ? partials(token[1]) : partials[token[1]]
         
@@ -343,11 +344,11 @@
         
             when '&'
               value = context.lookup(token[1])
-              buffer += value if (value isnt null)
+              buffer += value if value isnt null
         
             when 'name'
               value = context.lookup(token[1])
-              buffer += mustache.escape(value) if (value isnt null)
+              buffer += mustache.escape(value) if value isnt null
         
             when 'text'
                buffer += token[1]
