@@ -189,13 +189,13 @@ factory = (mustache) ->
 
     # alarm! unesed token
     for token, i in tokens
-      if token
-        if token[0] is 'text' and lastToken and lastToken[0] is 'text'
-          lastToken[1] += token[1]
-          lastToken[3] = token[3]
-        else
-          squashedTokens.push(token)
-          lastToken = token
+      continue unless token
+      if token[0] is 'text' and lastToken and lastToken[0] is 'text'
+        lastToken[1] += token[1]
+        lastToken[3] = token[3]
+      else
+        squashedTokens.push(token)
+        lastToken = token
 
     return  squashedTokens
 

@@ -187,14 +187,15 @@ global define: false
       squashedTokens = [];
       for (i = _i = 0, _len = tokens.length; _i < _len; i = ++_i) {
         token = tokens[i];
-        if (token) {
-          if (token[0] === 'text' && lastToken && lastToken[0] === 'text') {
-            lastToken[1] += token[1];
-            lastToken[3] = token[3];
-          } else {
-            squashedTokens.push(token);
-            lastToken = token;
-          }
+        if (!token) {
+          continue;
+        }
+        if (token[0] === 'text' && lastToken && lastToken[0] === 'text') {
+          lastToken[1] += token[1];
+          lastToken[3] = token[3];
+        } else {
+          squashedTokens.push(token);
+          lastToken = token;
         }
       }
       return squashedTokens;
